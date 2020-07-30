@@ -34,7 +34,7 @@ def tvfemd(x, THRESH_BWR=0.1, BSP_ORDER=26, MODES=50): ## t useless
 			break
 
 		if len(np.concatenate([indmin_x, indmax_x])) < 4:
-			imf[nimf,:] = temp_x
+			imf[nimf, :] = temp_x
 			if len(np.where(temp_x != 0)[0]) > 0:
 				nimf += 1
 			end_flag = 1
@@ -42,19 +42,19 @@ def tvfemd(x, THRESH_BWR=0.1, BSP_ORDER=26, MODES=50): ## t useless
 		if end_flag == 1:
 			break
 
-		num_padding = np.round(len(temp_x) * 0.5)
+		num_padding = int(np.round(len(temp_x) * 0.5))
 		y = temp_x.copy()
 
 		flag_stopiter = 0
 		for iter in range(100):
-			y = np.concatenate([np.fliplr(y[1:2+num_padding]), y, np.fliplr(y[-num_padding-1:-1])])
+			y = np.concatenate([np.flip(y[1:2+num_padding]), y, np.flip(y[-num_padding-1:-1])])
 
 			tt = np.arange(1, len(y), dtype=int)
 			ind_remov_pad = np.arange(num_padding + 1, len(y) - num_padding, dtype=int)
 
 			indmin_y, indmax_y = extr(y)
 			indexC_y = np.sort(np.concatenate([indmin_y, indmax_y]))
-			instAmp0, instFreq0 = INST_FREQ_local(y)
+			inst_amp_0, inst_freq_0 = INST_FREQ_local(y)
 
 			a1, f1, a2, f2, bis_freq, instBWR, avgFreq = divide_y(y, instAmp0, instFreq0)
 
@@ -119,7 +119,7 @@ def tvfemd(x, THRESH_BWR=0.1, BSP_ORDER=26, MODES=50): ## t useless
 			y -= localmean
 			y = y[ind_remov_pad]
 
-	imf[nimf:MAX_IMF,:] = [] ##################
+	imf = np.delete(imf, np.s_[nimf:MAX_IMF], axis=0)
 
 	return imf
 
@@ -150,13 +150,12 @@ def anti_modemixing(y, bis_freq, ind_remov_pad, num_padding):
 			intermitt = np.concatenate([intermitt, indmax_y[i]])
 			diff_bis_freq[indmax_y[i]] = bis_freq[indmax_y[i + 1]] - bis_freq[indmax_y[i]]
 
-	ind_remov_pad[:np.round(0.1 * len(ind_remov_pad))] = [] ####################
-	ind_remov_pad[np.round(0.9 * len(ind_remov_pad))-1:] = [] ####################
+	ind_remov_pad = np.delete(ind_remov_pad, np.r_[np.s_[0:np.round(0.1 * len(ind_remov_pad))], np.s_[np.round(0.9 * len(ind_remov_pad))-1:len(ind_remov_pad)]])
 	inters = np.intersect1d(ind_remov_pad, intermitt)
 	if len(inters) > 0:
 		flag_intermitt = 1
 
-	for i in range(1, numel(intermitt) - 1):
+	for i in range(1, len(intermitt) - 1):
 		u1 = intermitt[i - 1]
 		u2 = intermitt[i]
 		u3 = intermitt[i + 1]
@@ -332,7 +331,7 @@ def extendsignal(y, n_padding): ####### indices #######
 		end_slope = y[-1] - y[-2]
 		end_inds = fast_crossing(y, y[-1])
 		n_add_end = n_points - 1
-		end_inds[end_inds==n_points-1] = [] ####################
+		end_inds = np.delete(end_inds, np.where(end_inds == n_points - 1)[0])
 		n_add_end = match_slope(y, end_inds, end_slope) + 1
 		if np.isempty(n_add_end):
 			if right_padded == 0:
@@ -345,7 +344,7 @@ def extendsignal(y, n_padding): ####### indices #######
 		start_slope = y[1] - y[0]
 		start_inds = fast_crossing(y, y[0])
 		n_add_start = 2
-		start_inds[start_inds+1==2] = [] #########################
+		start_inds = np.delete(start_inds, np.where(start_inds + 1 == 2)[0])
 		n_add_start = match_slope(y, start_inds + 1, start_slope) - 2
 		if np.isempty(n_add_start):
 			if(left_padded == 0):
@@ -391,6 +390,18 @@ def match_slope(y, inds, slope):
 
 	"""
 	n_points = len(y)
+	inds = np.delete(inds, np.where((y[inds] - y[inds - 1]) * slope < 0)[0])
+	inds = np.delete(inds, np.where(inds > n_points - 5)[0])
+	inds = np.delete(inds, np.where(inds < 5)[0])
+	slopes = y[inds] - y[inds - 1]
+	slope_diff = np.min(np.abs(slopes - slope))
+	ind = np.where(np.abs(slopes - slope) == slope_diff)[0]
+	if np.isfinite(slope_diff):
+		out_ind = inds[ind]
+	else:
+		out_ind = np.array([], dtype=int)
+
+	return out_ind
 
 
 def extr(x, t=[]): ### t useless, also indzer
