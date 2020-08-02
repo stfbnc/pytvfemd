@@ -1,5 +1,6 @@
 import numpy as np
 from scipy.interpolate import pchip_interpolate
+from . import INST_FREQ_local
 
 def tvfemd(x, THRESH_BWR=0.1, BSP_ORDER=26, MODES=50): ## t useless
 	"""Time varying filter based EMD
