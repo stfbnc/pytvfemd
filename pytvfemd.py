@@ -1,6 +1,6 @@
 import numpy as np
 from scipy.interpolate import pchip_interpolate
-from . import INST_FREQ_local
+from . import inst_freq_local
 
 def tvfemd(x, THRESH_BWR=0.1, BSP_ORDER=26, MODES=50): ## t useless
 	"""Time varying filter based EMD
@@ -55,7 +55,7 @@ def tvfemd(x, THRESH_BWR=0.1, BSP_ORDER=26, MODES=50): ## t useless
 
 			indmin_y, indmax_y = extr(y)
 			indexC_y = np.sort(np.concatenate([indmin_y, indmax_y]))
-			inst_amp_0, inst_freq_0 = INST_FREQ_local(y)
+			inst_amp_0, inst_freq_0 = inst_freq_local.inst_freq_local(y)
 
 			a1, f1, a2, f2, bis_freq, instBWR, avgFreq = divide_y(y, instAmp0, instFreq0)
 
@@ -277,7 +277,7 @@ def divide_y(y, inst_amp_0, inst_freq_0):
 	cos_diffphi = (np.power(inst_amp_0, 2.0) - np.power(a1, 2.0) - np.power(a2, 2.0)) / (2 * a1 * a2)
 	cos_diffphi[cos_diffphi > 1.2] = 1
 	cos_diffphi[cos_diffphi < -1.2] = -1
-	inst_amp1, inst_freq_diff_phi = INST_FREQ_local(cos_diffphi)
+	inst_amp1, inst_freq_diff_phi = inst_freq_local.inst_freq_local(cos_diffphi)
 
 	diff_a1 = (a1[2:] - a1[:-2]) / 2.0
 	diff_a1 = np.concatenate([diff_a1[0], diff_a1, diff_a1[-1]])
