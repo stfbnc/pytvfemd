@@ -19,6 +19,9 @@ def inst_freq_local(data):
     ts = 1 / fs
 
     dimension = data.shape
+    if len(dimension) == 1:
+        dimension = (1, dimension[0])
+        data = np.expand_dims(data, axis=0)
     inst_amp = np.zeros(dimension, dtype=float)
     inst_freq = np.zeros(dimension, dtype=float)
 
@@ -33,13 +36,17 @@ def inst_freq_local(data):
         inst_freq_temp = np.concatenate([[inst_freq_temp[0]], inst_freq_temp, [inst_freq_temp[-1]]])
         inst_freq[k, :] = inst_freq_temp.flatten() / (2 * np.pi)
 
-    inst_amp[0] = inst_amp[1]
-    inst_amp[-1] = inst_amp[-2]
+    #if dimension[0] == 1:
+    inst_amp[0, 0] = inst_amp[0, 1]
+    inst_amp[0, -1] = inst_amp[0, -2]
+    #else:
+    #    inst_amp[0, 0] = inst_amp[1, 0]
+    #    inst_amp[-1, -1] = inst_amp[-2, -1]
 
     inst_freq[np.where(inst_freq <= 0.0)] = 0.0
     inst_freq = inst_freq / fs
 
-    return inst_amp, inst_freq
+    return inst_amp[0], inst_freq[0]
 
 
 
