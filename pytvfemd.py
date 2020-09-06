@@ -1,7 +1,10 @@
 import numpy as np
 from scipy.interpolate import pchip_interpolate
+import warnings
+from . import splinefit
 from . import inst_freq_local
 
+warnings.filterwarnings("ignore")
 
 def tvfemd(x, THRESH_BWR=0.1, BSP_ORDER=26, MODES=50):
 	"""Time varying filter based EMD
@@ -31,7 +34,7 @@ def tvfemd(x, THRESH_BWR=0.1, BSP_ORDER=26, MODES=50):
 	temp_x = x.copy()
 
 	# t = np.arange(1, len(x) + 1, dtype=int)
-	for nimf in range(MAX_IMF):
+	for nimf in range(2):#MAX_IMF):
 		indmin_x, indmax_x = extr(temp_x)
 		if nimf == (MAX_IMF - 1):
 			imf[nimf, :] = temp_x
@@ -56,11 +59,9 @@ def tvfemd(x, THRESH_BWR=0.1, BSP_ORDER=26, MODES=50):
 
 			# tt = np.arange(1, len(y), dtype=int)
 			ind_remov_pad = np.arange(num_padding, len(y) - num_padding, dtype=int)
-
 			indmin_y, indmax_y = extr(y)
 			index_c_y = np.sort(np.concatenate([indmin_y, indmax_y]))
 			inst_amp_0, inst_freq_0 = inst_freq_local.inst_freq_local(y)
-
 			a1, f1, a2, f2, bis_freq, inst_bwr, avg_freq = divide_y(y, inst_amp_0, inst_freq_0)
 
 			inst_bwr_2 = inst_bwr.copy()
@@ -73,7 +74,12 @@ def tvfemd(x, THRESH_BWR=0.1, BSP_ORDER=26, MODES=50):
 			bis_freq[bis_freq <= 0] = 1e-12
 
 			bis_freq = anti_modemixing(y, bis_freq, ind_remov_pad, num_padding)
+
+			np.savetxt("python.txt", bis_freq)
+
 			bis_freq = bis_freq[ind_remov_pad]
+			## different results for bis_freq at this point
+
 			bis_freq = np.concatenate([np.flip(bis_freq[1:2+num_padding-1]), bis_freq, np.flip(bis_freq[-num_padding-1:-1])])
 
 			bis_freq = anti_modemixing(y, bis_freq, ind_remov_pad, num_padding)
@@ -97,11 +103,16 @@ def tvfemd(x, THRESH_BWR=0.1, BSP_ORDER=26, MODES=50):
 				phi[i + 1] = phi[i] + 2 * np.pi * bis_freq[i]
 
 			indmin_knot, indmax_knot = extr(np.cos(phi))
+			# dimensions differ here
 			index_c_knot = np.sort(np.concatenate([indmin_knot, indmax_knot]))
 
 			if len(index_c_knot) > 2:
-				pp_spline = splinefit(np.arange(0, len(y), dtype=int), y, index_c_knot, BSP_ORDER, 'p')
-				localmean = ppval(pp_spline, np.arange(0, len(y), dtype=int))
+				#pp_spline = splinefit(np.arange(0, len(y), dtype=int), y, index_c_knot, BSP_ORDER, 'p')
+				#localmean = ppval(pp_spline, np.arange(0, len(y), dtype=int))
+
+				localmean = splinefit.splinefit(np.arange(0, len(y), dtype=int), y, index_c_knot, BSP_ORDER)
+
+				#print(np.mean(localmean))
 			else:
 				localmean = np.array([], dtype=float)
 				flag_stopiter = 1
@@ -112,10 +123,10 @@ def tvfemd(x, THRESH_BWR=0.1, BSP_ORDER=26, MODES=50):
 
 				temp_residual = y - localmean
 				temp_residual = temp_residual[ind_remov_pad]
-				temp_residual = temp_residual[np.round(len(temp_residual) * 0.1).astype(int):
+				temp_residual = temp_residual[np.round(len(temp_residual) * 0.1).astype(int)-1:
 											  -np.round(len(temp_residual) * 0.1).astype(int)]
 				localmean2 = localmean[ind_remov_pad]
-				localmean2 = localmean2[np.round(len(localmean2) * 0.1).astype(int):
+				localmean2 = localmean2[np.round(len(localmean2) * 0.1).astype(int)-1:
 										-np.round(len(localmean2) * 0.1).astype(int)]
 				if (np.abs(np.max(localmean2)) / np.abs(np.max(inst_amp_0[ind_remov_pad])) < 3.5e-2 or
 				   np.abs(np.max(temp_residual)) / np.abs(np.max(inst_amp_0[ind_remov_pad])) < 1e-2):
