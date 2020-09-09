@@ -1,6 +1,7 @@
 import numpy as np
 from scipy.signal import hilbert
 
+
 def inst_freq_local(data):
     """Computes Hilbert-Huang spectrum using Hilbert transform,
     the instantaneous frequency and the instantaneous amplitude for each IMF.
@@ -36,12 +37,8 @@ def inst_freq_local(data):
         inst_freq_temp = np.concatenate([[inst_freq_temp[0]], inst_freq_temp, [inst_freq_temp[-1]]])
         inst_freq[k, :] = inst_freq_temp.flatten() / (2 * np.pi)
 
-    #if dimension[0] == 1:
     inst_amp[0, 0] = inst_amp[0, 1]
     inst_amp[0, -1] = inst_amp[0, -2]
-    #else:
-    #    inst_amp[0, 0] = inst_amp[1, 0]
-    #    inst_amp[-1, -1] = inst_amp[-2, -1]
 
     inst_freq[np.where(inst_freq <= 0.0)] = 0.0
     inst_freq = inst_freq / fs

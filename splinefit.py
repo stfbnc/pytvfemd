@@ -106,7 +106,7 @@ def splinebase(breaks, n):
     pp : numpy ndarray
         B-spline base.
     """
-    breaks = breaks.flatten("F")
+    breaks = breaks.flatten()
     breaks0 = breaks.copy()
     h = np.diff(breaks)
     pieces = len(h)
@@ -116,7 +116,7 @@ def splinebase(breaks, n):
         if deg <= pieces:
             hcopy = h.copy()
         else:
-            hcopy = np.tile(h, (int(np.ceil(deg / pieces)), 1))
+            hcopy = np.tile(h, (int(np.ceil(deg / pieces)), ))
         hl = hcopy[-1:-deg-1:-1]
         bl = breaks[0] - np.cumsum(hl)
         hr = hcopy[:deg]
