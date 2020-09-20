@@ -1,4 +1,6 @@
 __pycache__
 .idea
-*.m
-*.txt
+m_files
+test_files
+test_pytvfemd.ipynb
+.gitignore

@@ -6,6 +6,7 @@ from . import inst_freq_local
 
 warnings.filterwarnings("ignore")
 
+
 def tvfemd(x, THRESH_BWR=0.1, BSP_ORDER=26, MODES=50):
 	"""Time varying filter based EMD
 	Parameters
@@ -61,6 +62,9 @@ def tvfemd(x, THRESH_BWR=0.1, BSP_ORDER=26, MODES=50):
 			indmin_y, indmax_y = extr(y)
 			index_c_y = np.sort(np.concatenate([indmin_y, indmax_y]))
 			inst_amp_0, inst_freq_0 = inst_freq_local.inst_freq_local(y)
+
+			# instantaneous amplitudes and frequencies, and bisecting frequency
+			# LHF and LLF components
 			a1, f1, a2, f2, bis_freq, inst_bwr, avg_freq = divide_y(y, inst_amp_0, inst_freq_0)
 
 			inst_bwr_2 = inst_bwr.copy()
@@ -92,13 +96,16 @@ def tvfemd(x, THRESH_BWR=0.1, BSP_ORDER=26, MODES=50):
 			if len(np.where(temp_inst_bwr[ind_start:ind_end+1] > THRESH_BWR)[0]) / len(inst_bwr_2[ind_remov_pad]) < 0.2:
 				flag_stopiter = 1
 
+			# integral of the bisecting frequency
 			phi = np.zeros((len(bis_freq), ))
 			for i in range(len(bis_freq) - 1):
 				phi[i + 1] = phi[i] + 2 * np.pi * bis_freq[i]
 
+			# knots as the extrema of h(t) = cos(phi)
 			indmin_knot, indmax_knot = extr(np.cos(phi))
 			index_c_knot = np.sort(np.concatenate([indmin_knot, indmax_knot]))
 			if len(index_c_knot) > 2:
+				# obtaining LLF component
 				localmean = splinefit.splinefit(np.arange(0, len(y), dtype=int), y, index_c_knot, BSP_ORDER)
 			else:
 				flag_stopiter = 1
@@ -106,6 +113,8 @@ def tvfemd(x, THRESH_BWR=0.1, BSP_ORDER=26, MODES=50):
 			if (np.max(np.abs(y[ind_remov_pad] - localmean[ind_remov_pad])) / np.min(np.abs(localmean[ind_remov_pad])) < 1e-3):
 				flag_stopiter = 1
 
+			# sifting-like procedure, subtract LLF iteratively
+			# until the LHF component is narrow band
 			temp_residual = y - localmean
 			temp_residual = temp_residual[ind_remov_pad]
 			temp_residual = temp_residual[np.round(len(temp_residual) * 0.1).astype(int)-1:
@@ -127,7 +136,7 @@ def tvfemd(x, THRESH_BWR=0.1, BSP_ORDER=26, MODES=50):
 
 	imf = np.delete(imf, np.s_[nimf:MAX_IMF], axis=0)
 
-	return imf
+	return imf.transpose((1, 0))
 
 
 def anti_modemixing(y, bis_freq, ind_remov_pad, num_padding):
