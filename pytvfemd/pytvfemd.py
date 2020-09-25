@@ -181,8 +181,8 @@ def anti_modemixing(y, bis_freq, ind_remov_pad, num_padding):
             diff_bis_freq[indmax_y[i]] = bis_freq[indmax_y[i + 1]] - bis_freq[indmax_y[i]]
 
     ind_remov_pad = np.delete(ind_remov_pad,
-                              np.r_[np.s_[0:np.round(0.1 * len(ind_remov_pad))],
-                                    np.s_[np.round(0.9 * len(ind_remov_pad))-1:len(ind_remov_pad)]])
+                              np.r_[np.s_[0:np.round(0.1 * len(ind_remov_pad)).astype(int)],
+                                    np.s_[np.round(0.9 * len(ind_remov_pad)).astype(int)-1:len(ind_remov_pad)]])
     inters = np.intersect1d(ind_remov_pad, intermitt)
     if len(inters) > 0:
         flag_intermitt = 1
