@@ -34,7 +34,7 @@ def tvfemd(x, thresh_bwr=0.1, bsp_order=26, modes=0, max_imf=None):
     bsp_order : int, optional
         b-spline order (default : 26).
     modes : int, optional
-        Extra imfs to extract, ignored if `max_imf` is not None (default : 50).
+        Extra imfs to extract, ignored if `max_imf` is not None (default : 0).
     max_imf : int, optional
         Maximum number of imfs to extract (default : None)
     Returns

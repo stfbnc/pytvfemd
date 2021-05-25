@@ -2,7 +2,7 @@ from setuptools import find_packages
 from distutils.core import setup
 
 setup(name="pytvfemd",
-      version="0.1.post1",
+      version="0.2",
       author="Stefano Bianchi",
       author_email="stefanobianchi9@gmail.com",
       url="https://github.com/stfbnc/pytvfemd.git",
@@ -17,7 +17,7 @@ setup(name="pytvfemd",
                    "Programming Language :: Python :: 3.8",
                    "Programming Language :: Python :: 3.9",
                    "Topic :: Scientific/Engineering"],
-      python_requires=">=3.5",
+      python_requires=">=3.6",
       install_requires=["numpy>=1.15,<1.20",
                         "scipy"],
       project_urls={"Bug Reports": "https://github.com/stfbnc/pytvfemd/issues",
