@@ -1,18 +1,18 @@
-### pytvfemd.py
-### Copyright (C) 2020  Stefano Bianchi
-###
-### This program is free software: you can redistribute it and/or modify
-### it under the terms of the GNU General Public License as published by
-### the Free Software Foundation, either version 3 of the License, or
-### (at your option) any later version.
-###
-### This program is distributed in the hope that it will be useful,
-### but WITHOUT ANY WARRANTY; without even the implied warranty of
-### MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-### GNU General Public License for more details.
-###
-### You should have received a copy of the GNU General Public License
-### along with this program.  If not, see <https://www.gnu.org/licenses/>.
+# pytvfemd.py
+# Copyright (C) 2020  Stefano Bianchi
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import numpy as np
 from scipy.interpolate import pchip_interpolate
@@ -23,18 +23,20 @@ from . import inst_freq_local
 warnings.filterwarnings("ignore")
 
 
-def tvfemd(x, THRESH_BWR=0.1, BSP_ORDER=26, MODES=50):
+def tvfemd(x, thresh_bwr=0.1, bsp_order=26, modes=0, max_imf=None):
     """Time varying filter based EMD
     Parameters
     ----------
     x : numpy ndarray
         Input signal x(t).
-    THRESH_BWR : float, optional
+    thresh_bwr : float, optional
         Instantaneous bandwidth threshold (default : 0.1).
-    BSP_ORDER : int, optional
+    bsp_order : int, optional
         b-spline order (default : 26).
-    MODES : int, optional
-        Extra imfs to extract (default : 50).
+    modes : int, optional
+        Extra imfs to extract, ignored if `max_imf` is not None (default : 50).
+    max_imf : int, optional
+        Maximum number of imfs to extract (default : None)
     Returns
     -------
     imf : numpy ndarray
@@ -43,17 +45,18 @@ def tvfemd(x, THRESH_BWR=0.1, BSP_ORDER=26, MODES=50):
     if len(x.shape) != 1:
         raise ValueError("Input signal must be unidimensional.")
 
-    numMAX = int(np.floor(np.log2(len(x))) + 1)
-    MAX_IMF = numMAX + MODES
+    if max_imf is None:
+        num_max = int(np.floor(np.log2(len(x))) + 1)
+        max_imf = num_max + modes
 
     end_flag = 0
-    imf = np.zeros((MAX_IMF, len(x)), dtype=float)
+    imf = np.zeros((max_imf, len(x)), dtype=float)
     temp_x = x.copy()
 
-    localmean = np.array([], dtype=float) # probably unnecessary initialization, but safer to avoid crashes
-    for nimf in range(MAX_IMF):
+    localmean = np.array([], dtype=float)  # probably unnecessary initialization, but safer to avoid crashes
+    for nimf in range(max_imf):
         indmin_x, indmax_x = extr(temp_x)
-        if nimf == (MAX_IMF - 1):
+        if nimf == (max_imf - 1):
             imf[nimf, :] = temp_x
             nimf += 1
             break
@@ -88,7 +91,7 @@ def tvfemd(x, THRESH_BWR=0.1, BSP_ORDER=26, MODES=50):
                 ind = np.arange(index_c_y[j], index_c_y[j + 2] + 1, dtype=int)
                 inst_bwr_2[ind] = np.mean(inst_bwr[ind])
 
-            bis_freq[inst_bwr_2 < THRESH_BWR] = 1e-12
+            bis_freq[inst_bwr_2 < thresh_bwr] = 1e-12
             bis_freq[bis_freq > 0.5] = 0.45
             bis_freq[bis_freq <= 0] = 1e-12
 
@@ -104,12 +107,12 @@ def tvfemd(x, THRESH_BWR=0.1, BSP_ORDER=26, MODES=50):
             ind_start = np.round(len(temp_inst_bwr) * 0.05).astype(int) - 1
             ind_end = np.round(len(temp_inst_bwr) * 0.95).astype(int) - 1
 
-            if ((iter >= 1 and np.mean(temp_inst_bwr[ind_start:ind_end+1]) < THRESH_BWR + THRESH_BWR / 4 * (iter + 1)) or
+            if ((iter >= 1 and np.mean(temp_inst_bwr[ind_start:ind_end+1]) < thresh_bwr + thresh_bwr / 4 * (iter + 1)) or
                     iter >= 5 or
-                    (nimf > 0 and np.mean(temp_inst_bwr[ind_start:ind_end+1]) < THRESH_BWR + THRESH_BWR / 4 * (iter + 1))):
+                    (nimf > 0 and np.mean(temp_inst_bwr[ind_start:ind_end+1]) < thresh_bwr + thresh_bwr / 4 * (iter + 1))):
                 flag_stopiter = 1
 
-            if len(np.where(temp_inst_bwr[ind_start:ind_end+1] > THRESH_BWR)[0]) / len(inst_bwr_2[ind_remov_pad]) < 0.2:
+            if len(np.where(temp_inst_bwr[ind_start:ind_end+1] > thresh_bwr)[0]) / len(inst_bwr_2[ind_remov_pad]) < 0.2:
                 flag_stopiter = 1
 
             # integral of the bisecting frequency
@@ -122,7 +125,7 @@ def tvfemd(x, THRESH_BWR=0.1, BSP_ORDER=26, MODES=50):
             index_c_knot = np.sort(np.concatenate([indmin_knot, indmax_knot]))
             if len(index_c_knot) > 2:
                 # obtaining LLF component
-                localmean = splinefit.splinefit(np.arange(0, len(y), dtype=int), y, index_c_knot, BSP_ORDER)
+                localmean = splinefit.splinefit(np.arange(0, len(y), dtype=int), y, index_c_knot, bsp_order)
             else:
                 flag_stopiter = 1
 
@@ -150,7 +153,7 @@ def tvfemd(x, THRESH_BWR=0.1, BSP_ORDER=26, MODES=50):
             y -= localmean
             y = y[ind_remov_pad]
 
-    imf = np.delete(imf, np.s_[nimf:MAX_IMF], axis=0)
+    imf = np.delete(imf, np.s_[nimf:max_imf], axis=0)
 
     return imf.transpose((1, 0))
 
