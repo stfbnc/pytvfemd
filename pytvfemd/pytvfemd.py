@@ -501,7 +501,7 @@ def __splinefit(x, y, breaks, n):
     jj = np.tile(np.arange(0, mx).astype(int), (n, 1))
     ii = np.mod(ii, pieces)
     a_sp = csr_matrix((a_sp.flatten(), (ii.flatten(), jj.flatten())),
-                      shape=(pieces, mx), dtype=np.float)
+                      shape=(pieces, mx), dtype=float)
     a_sp.eliminate_zeros()
 
     if pieces < 20 * n / np.log(1.7 * n):
