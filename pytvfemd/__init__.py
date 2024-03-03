@@ -1,5 +1,5 @@
 # __init__.py
-# Copyright (C) 2022-  Stefano Bianchi
+# Copyright (C) 2022-  Stefano Bianchi, Alessandro Longo
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,5 +16,5 @@
 
 from .pytvfemd import tvfemd
 
-__author__ = "Stefano Bianchi"
-__version__ = "0.3.12"
+__author__ = "Stefano Bianchi, Alessandro Longo"
+__version__ = "0.3.14"

@@ -2,12 +2,12 @@ from setuptools import find_packages
 from distutils.core import setup
 
 setup(name="pytvfemd",
-      version="0.3.13",
-      author="Stefano Bianchi",
+      version="0.3.14",
+      author="Stefano Bianchi, Alessandro Longo",
       author_email="stefanobianchi9@gmail.com",
       url="https://github.com/stfbnc/pytvfemd.git",
       license="GPLv3.0",
-      description="tvfemd in Python",
+      description="tvfemd algorithm in Python",
       long_description=open("README.md").read(),
       packages=find_packages(),
       classifiers=["License :: OSI Approved :: GNU General Public License v3 (GPLv3)",

@@ -1,5 +1,5 @@
 # pytvfemd.py
-# Copyright (C) 2022-  Stefano Bianchi
+# Copyright (C) 2022-  Stefano Bianchi, Alessandro Longo
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
